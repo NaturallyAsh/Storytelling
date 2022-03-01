@@ -7,6 +7,7 @@ SILVER = "#C0C0C0"
 DIMGRAY = "#696969"
 DARKGRAY = "#4D4D4D"
 BLACK = "#000000"
+WHITE = "#FFFFFF"
 # ORANGES
 GOLD = "#FFD700"
 ORANGE = "#FFA500"
@@ -48,9 +49,10 @@ my_swd_theme <- function() {
       axis.text = element_text(color = DARKGRAY),
       plot.subtitle = element_text(color = DARKGRAY, size= 8),
       plot.title = element_text(color = DARKGRAY, size= 15),
-      plot.title.position = "plot", # This aligns the plot title to the very left edge
+      plot.title.position = "plot", # aligns plot title to the left edge
       plot.caption = element_text(hjust = 0, color = GRAY),
       plot.caption.position = "plot",
       plot.margin = margin(.5,.5,.5,.5,"cm"),
+      legend.position = "none"
     )
 }

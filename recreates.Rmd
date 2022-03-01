@@ -293,3 +293,87 @@ ggplot(data_0504, aes(year, number, group = Category, color = color)) +
     plot.subtitle = element_markdown(size = 10)
   )
 ```
+
+### 5.13
+
+```{r}
+data_0513_OG <- read_csv("data/fig_0513_data.csv")
+```
+
+```{r}
+data_0513 <- data_0513_OG %>% 
+  pivot_longer(cols = c(`US Population`, `Our Customers`), names_to = "customer_type", values_to = "number") %>% 
+  mutate(
+    Segment = as_factor(Segment),
+    customer_type = as_factor(customer_type),
+    num_color = case_when(
+      Segment == "Segment 3" ~ WHITE,
+      Segment == "Segment 4" ~ WHITE,
+      Segment == "Segment 5" ~ WHITE,
+      TRUE ~ BLACK
+    )
+  )
+  
+data_0513_color_values <- c(
+  "Segment 1" = SILVER,
+  "Segment 2" = SILVER,
+  "Segment 3" = BLUEGRAY,
+  "Segment 4" = BLUEGRAY,
+  "Segment 5" = BLUEGRAY,
+  "Segment 6" = SILVER,
+  "Segment 7" = SILVER
+)
+
+percent_30_grob <- grobTree(richtext_grob(
+  "<b>30%</b>", gp = gpar(fontsize = 20, col = BLUEGRAY)
+))
+
+percent_50_grob <- grobTree(richtext_grob(
+  "<b>50%</b>", gp = gpar(fontsize = 20, col = BLUEGRAY)
+))
+
+# reference to the below solutions (line_*_grob): https://rdrr.io/r/grid/grid.segments.html
+line_30_grob <- segmentsGrob(
+  x0 = unit(.43, "npc"), 
+  y0 = unit(.525, "npc"),
+  x1 = unit(.43, "npc"), 
+  y1 = unit(.258, "npc"),
+  default.units = "npc",
+  arrow = NULL, name = NULL, gp = gpar(), vp = NULL)
+
+line_50_grob <- segmentsGrob(
+  x0 = unit(.865, "npc"), 
+  y0 = unit(.67, "npc"),
+  x1 = unit(.865, "npc"), 
+  y1 = unit(.22, "npc"),
+  default.units = "npc",
+  arrow = NULL, name = NULL, gp = gpar(), vp = NULL)
+```
+
+Graph
+
+```{r}
+ggplot(data_0513, aes(customer_type, number, fill = Segment)) +
+  # scale_fill_identity() +
+  scale_fill_manual(values = data_0513_color_values) +
+  geom_col(color = "white", width = .5) +
+  scale_x_discrete(expand = expansion(add = c(.7,.6))) +
+  geom_text(aes(label = Segment, color = Segment), size = 4.1, position = position_stack(vjust = .55), hjust = 2.2, data = data_0513 %>% filter(customer_type == "US Population")) +
+  scale_color_manual(values = data_0513_color_values) +
+  geom_text(aes(label = paste0(number*100,"%"), parse = TRUE),  color = WHITE, position = position_stack(vjust = .6)) +
+  annotation_custom(percent_30_grob, xmin = .2, ymin = -.29) +
+  annotation_custom(percent_50_grob, xmin = 2.2, ymin = -.2) +
+  # geom_linerange(x = "US Population", ymin = 0, ymax = .52, size = 6) +
+  annotation_custom(line_30_grob) +
+  annotation_custom(line_50_grob) +
+  labs(
+    title = "Distribution by customer segment"
+  ) +
+  my_swd_theme() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.line.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank()
+  )
+```
