@@ -214,7 +214,7 @@ data_0414 <- data_0414_OG %>%
 
 # the below is a grob object from the grid_text package. This was the only way to add a markdown annotation text box to the graph.
 graph_annotation <- grobTree(richtext_grob(
-  "<span style='background_color:white'><b>2 employees quit in May.</b> Ticket volume dramatically <br> decreased in the following two months then increased in July. <br> Volume fluctuated in the months following July.</span>", x = .58, y = .93, gp = gpar(col = GRAY, fontsize = 12), box_gp = gpar(col = "white", fill = "white"), padding = margin(.4,0,0,0,"in")
+  "<span style='background_color:white'><b>2 employees quit in May.</b> Ticket volume dramatically <br> decreased in the following two months then increased in July. <br> Volume fluctuated in the months following July.</span>", x = .58, y = .93, gp = gpar(col = GRAY, fontsize = 12), hjust = 0, box_gp = gpar(col = "white", fill = "white"), padding = margin(.4,0,0,0,"in")
 ))
 ```
 
@@ -233,7 +233,7 @@ ggplot(data_0414, aes(x = month, y = amount, group = ticket_type, color = ticket
   geom_text(aes(label = amount), nudge_y = -18, data = data_0414 %>% filter(ticket_type != "Ticket Volume Received") %>% filter(month %in% c("Aug","Sep","Oct","Nov","Dec"))) +
   annotate("text", x = 13.5, y = 180, size = 5, color = GRAY, label = "bold(Received)", parse = TRUE) +
   annotate("text", x = 13.68, y = 142, size = 5, color = BLUEGRAY, label = "bold(Processed)", parse = TRUE) +
-  annotation_custom(graph_annotation) + # used with custom grob
+  annotation_custom(graph_annotation, xmin = -9) + # used with custom grob
   coord_capped_cart(bottom = "right", left = "top") +
   labs(
     title = "Ticket volume over time"
@@ -435,4 +435,166 @@ ggplot(data_0601, aes(days_since_launch, amount, color = money_raised_type, grou
     plot.title = element_text(hjust = .08)
   ) +
   coord_capped_cart(bottom = "right", left = "top")
+```
+
+## Practice Workbook Figures
+
+### 7.1
+
+```{r}
+data_pract_0701_OG <- read_csv("data/fig_practice_0701_data.csv")
+```
+
+```{r}
+data_pract_0701 <- data_pract_0701_OG %>% 
+  pivot_longer(cols = `2015`:`2019`, names_to = "year", values_to = "percent") %>% 
+  mutate(
+    percent = parse_number(percent),
+    year = as_factor(year)
+  )
+
+blue_text_grob <- grobTree(richtext_grob(
+  "<span style=\"fontsize: 1em\">The proportion of revenue from Feature <em>Z</em> is higher sooner:<br><span style=\"color:DARKBLUE\">28% of revenue was generated through Feature <em>Z</em> within<br> the first quarter advertising for new advertisers in 2019<br></span> compared to 15% for those creating<br> their first ad in 2015.</span>"
+, gp = gpar(fontsize = 8), hjust = 0, align_widths = TRUE, padding = unit(c(6, 6, 4, 6), "pt")))
+
+green_text_grob <- grobTree(richtext_grob(
+  "<span style=\"fontsize: 1em\"><br><br>The proportion of revenue from Feature <em>Z</em> generally<br>increases with advertiser tenure. <span style=\"color:FORESTGREEN\">By 16 quarters of<br>advertising, 50% of revenue came from Feature <em>Z</em><br>for those first creating an ad in 2015.</span> Given the<br>increase in sophistication over time, this may end<br>up being even higher for more recent cohorts.<br><br><br><br><br>We will continue to monitor and<br>report back if things change.</span>"
+, gp = gpar(fontsize = 8), hjust = 1, align_widths = TRUE, box_gp = gpar(col = LIGHTSTEELBLUE, fill = NA, lwd = 2), padding = unit(c(4, 4, 2, 4), "pt")))
+```
+
+Graph
+
+```{r}
+ggplot(data_pract_0701, aes(Age, percent, group = year)) +
+  geom_line(color = GRAY, size = .8) +
+  geom_point(color = GRAY, size = 3, data = data_pract_0701 %>% filter(Age == 0 & year != "2019")) +
+  geom_point(color = DARKBLUE, size = 3, data = data_pract_0701 %>% filter(Age == 0 & year == "2019")) +
+  geom_point(color = GREEN, size = 3, data = data_pract_0701 %>% filter(year == "2015" & Age == 15)) +
+  scale_y_continuous(limits = c(0,50), labels = label_percent(scale = 1), expand = expansion(add = c(1,3))) +
+  scale_x_continuous(breaks = seq(0,16,1), expand = expansion(add = c(.01,2))) +
+  geom_text(aes(label = year), color = GREEN, nudge_x = .8, data = data_pract_0701 %>% filter(year == "2015" & Age == 15)) +
+  geom_text(aes(x = 11.75, y = 43.8, label = year), color = GRAY, data = data_pract_0701 %>% filter(year == "2016" & Age == 12)) +
+  geom_text(aes(x = 8.55, y = 40, label = year), color = GRAY, data = data_pract_0701 %>% filter(year == "2017" & Age == 12)) +
+  geom_text(aes(x = 4.6, y = 34.6, label = year), color = GRAY, data = data_pract_0701 %>% filter(year == "2018" & Age == 12)) +
+  geom_text(aes(x = 1, y = 33, label = year), color = DARKBLUE, data = data_pract_0701 %>% filter(year == "2019" & Age == 12)) +
+  annotation_custom(blue_text_grob, xmin = -20.2, ymin = 33) +
+  annotate("text", label = "bold(Sophistication~increases~with~time)", x = 4.5, y = 50, parse = TRUE) +
+  annotate("text", label = "bold(Sophistication~increases~with~age)", hjust = 0.45, x = 13.4, y = 29, parse = TRUE) +
+  annotation_custom(green_text_grob, xmin = 16, ymin = -21) +
+  annotate("text", label = "bold(No~action~is~needed~at~this~time)", x = 14.1, y = 7, parse = TRUE) +
+  annotate("text", label = paste("FIRST AD","CREATED", sep = "\n"), size = 2.5, hjust = 1, x = 18.2, y = 50, color = GRAY) +
+  labs(
+    title = "Feature Z % of revenue by advertiser age",
+    x = "ADVERTISER AGE (QTRS)",
+    y = "FEATURE Z % OF TOTAL REVENUE"
+  ) +
+  my_swd_theme() + theme(
+    axis.title.y = element_text(size = 9),
+    axis.title.x = element_text(size = 9)
+  ) +
+  coord_capped_cart(bottom = "right", left = "top")
+```
+
+### Case study #5
+
+```{r}
+pilot_data_OG <- read_csv("data/pilot_program_data.csv")
+```
+
+```{r}
+pilot_data <- pilot_data_OG %>% 
+  pivot_longer(-program_type, names_to = "item_type", values_to = "item_value") %>% 
+  mutate(
+    item_value = parse_number(item_value),
+    program_type = as_factor(program_type),
+    item_type = as_factor(item_type),
+    color = case_when(
+      program_type == "after" & item_value %in% c(30,38) ~ STEELBLUE,
+      # program_type == "before" & item_value != 40 ~ LIGHTGRAY,
+      program_type == "after" & item_value %in% c(12,6,14) ~ LIGHTSTEELBLUE,
+      program_type == "before" & item_value == 40 ~ GRAY,
+      program_type == "before" & item_value != 40 ~ LIGHTGRAY,
+      # item_value == 30 ~ STEELBLUE,
+      TRUE ~ GRAY
+    )
+  )
+
+```
+
+Graph #1
+
+```{r}
+# ISSUES WITH BARS SWITCHING POSITIONS
+
+# ggplot(pilot_data, aes(x = item_type, y = item_value, fill = color)) +
+#   scale_fill_identity(guide = "none") +
+#   geom_col(position = "dodge") +
+#   scale_y_continuous(limits = c(0,50)) +
+#   geom_text(aes(label = item_value), nudge_x = -.25, nudge_y = -1, data = pilot_data %>% filter(program_type == "before")) +
+#   my_swd_theme() + theme(
+#     axis.line = element_blank(),
+#     axis.ticks.x = element_blank(),
+#     axis.ticks.y = element_blank(),
+#     axis.title.x = element_blank(),
+#     axis.title.y = element_blank(),
+#   )
+```
+
+Graph #2
+
+```{r}
+pilot_data_2 <- pilot_data_OG %>% 
+  pivot_longer(-program_type, names_to = "item_type", values_to = "item_value") %>% 
+  mutate(
+    program_type = str_to_upper(program_type)
+  ) %>% 
+  mutate(
+    program_type = as_factor(program_type),
+    item_value = parse_number(item_value),
+    item_type = fct_rev(as_factor(item_type))
+  ) 
+
+pilot2_color_scale = c(
+  "Bored" = GRAY,
+  "Not Great" = GRAY,
+  "OK" = ORANGE,
+  "Kind of interested" = STEELBLUE,
+  "Excited" = STEELBLUE
+)
+
+pilot_left_grob = grobTree(richtext_grob(
+  "<span style=\"fontsize:5rem; color:GRAY\">BEFORE program, the<br><span style=\"color:ORANGE\">majority of children (40%)<br>felt just *OK*</span> about science.</span>",
+  hjust = 0
+))
+
+pilot_right_grob = grobTree(richtext_grob(
+  "<span style=\"fontsize:5rem\">AFTER program, <span style=\"color:STEELBLUE\">more children<br>were *Kind of interested (30%)*<br>& *Excited (38%)*</span> about science.</span>",
+  hjust = 1
+))
+
+ggplot(pilot_data_2, aes(x = fct_rev(program_type), y = item_value, fill = item_type)) +
+  geom_col(color = "white", width = .6) +
+  scale_fill_manual(values = pilot2_color_scale) +
+  scale_y_continuous(position = "right", labels = label_percent(scale = 1)) +
+  scale_x_discrete(expand = expansion(add = c(1,.4))) +
+  coord_flip() +
+  my_swd_theme() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.line.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    plot.subtitle = element_markdown(hjust = .21, size = 12, padding = unit(c(.5,0,.5,0), "cm"))
+  ) +
+  labs(
+    title = "How do you feel about science?",
+    subtitle = paste0(
+      "<span style='color:", pilot2_color_scale[1], "'>", "**Bored**", "</span>", " | ",
+      "<span style='color:", pilot2_color_scale[2], "'>", "**Not Great**", "</span>", " | ",
+      "<span style='color:", pilot2_color_scale[3], "'>", "**OK**", "</span>", " | ",
+      "<span style='color:", pilot2_color_scale[4], "'>", "**Kind of interested**", "</span>", " | ",
+      "<span style='color:", pilot2_color_scale[5], "'>", "**Excited**", "</span>"
+      )
+  ) +
+  annotation_custom(pilot_left_grob, xmax = .6, ymax = 5) +
+  annotation_custom(pilot_right_grob, xmax = .6, ymax = 205)
 ```
